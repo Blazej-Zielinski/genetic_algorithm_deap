@@ -140,7 +140,7 @@ if __name__ == '__main__':
             case Crossover.LINEAR:
                 toolbox.register("mate", linear_crossover)
             case Crossover.SIMULATED_BINARY:
-                toolbox.register("mate", tools.cxSimulatedBinary, eta=10)
+                toolbox.register("mate", tools.cxSimulatedBinary, eta=config['eta'])
             case _:
                 print("Bad config")
                 exit(-1)
@@ -200,17 +200,12 @@ if __name__ == '__main__':
                     child1 = child1_temp
                     child2 = child1_temp
 
-        # offspring_copy = list(map(toolbox.clone, offspring))
         for mutant in offspring:
             # mutate an individual with probability MUTPB
             if random.random() < config['probability_mutate']:
                 toolbox.mutate(mutant)
                 del mutant.fitness.values
 
-        # todo do usunięcia
-        # for i in range(len(offspring)):
-        #     if offspring[i].fitness.values != offspring_copy[i].fitness.values and is_ind_in_interval(offspring_copy[i]):
-        #         offspring[i] = offspring_copy[i]
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitnesses = map(toolbox.evaluate, invalid_ind)

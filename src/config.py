@@ -52,10 +52,10 @@ class Mutation(Enum):
 
 config = {
     'individual': Individual.REAL,
-    'optimization_type': OptimizationType.MAXIMIZATION,
+    'optimization_type': OptimizationType.MINIMIZATION,
     'select': Selection.BEST,
     'mate': Crossover.BLEND_ALPHA_BETA,
-    'mutate': Mutation.UNIFORM_INT,
+    'mutate': Mutation.GAUSSIAN,
 
     'interval': [-10, 10],
     'size_population': 200,
@@ -80,5 +80,8 @@ config = {
 
     # BLEND CROSSOVER
     'alpha': 0.6,
-    'beta': 0.2
+    'beta': 0.2,
+
+    # SIMULATED_BINARY
+    'eta': 10
 }
