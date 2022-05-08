@@ -18,7 +18,6 @@ class Selection(Enum):
     TOURNAMENT = 'selTournament'
     RANDOM = 'selRandom'
     # Additional
-    DOUBLE_TOURNAMENT = 'selDoubleTournament'
     STOCH_UNIVERSAL_SAMPLING = 'selStochasticUniversalSampling'
 
 
@@ -53,15 +52,15 @@ class Mutation(Enum):
 
 config = {
     'individual': Individual.REAL,
-    'optimization_type': OptimizationType.MINIMIZATION,
+    'optimization_type': OptimizationType.MAXIMIZATION,
     'select': Selection.BEST,
-    'mate': Crossover.LINEAR,
+    'mate': Crossover.BLEND_ALPHA_BETA,
     'mutate': Mutation.UNIFORM_INT,
 
     'interval': [-10, 10],
-    'size_population': 100,
+    'size_population': 200,
     'select_size': 100,
-    'tournament_size': 60,
+    'tournament_size': 10,
     'probability_mate': 0.6,
     'probability_mutate': 0.1,
     'number_elite': 10,

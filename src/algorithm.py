@@ -45,6 +45,11 @@ def is_value_in_interval(value):
     return config['interval'][0] <= value <= config['interval'][1]
 
 
+def is_ind_in_interval(ind):
+    x1, x2 = decode_individual(ind)
+    return config['interval'][0] <= x1 <= config['interval'][1] and config['interval'][0] <= x2 <= config['interval'][1]
+
+
 def fitness_function(individual):
     x_1, x_2 = decode_individual(individual)
     return (x_1 + 2 * x_2 - 7) ** 2 + (2 * x_1 + x_2 - 5) ** 2,

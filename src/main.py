@@ -8,6 +8,8 @@ import csv
 import sys
 import os
 import matplotlib.pyplot as plt
+import copy
+import time
 
 best_members = []
 avg_arr = []
@@ -97,13 +99,15 @@ if __name__ == '__main__':
 
     match config['select']:
         case Selection.TOURNAMENT:
-            toolbox.register("select", tools.selTournament, tournsize=config['tournament_size'])
+            toolbox.register("select", tools.selTournament, tournsize=config['tournament_size'], k=config['select_size'])
         case Selection.WORST:
             toolbox.register("select", tools.selWorst, k=config['select_size'])
         case Selection.RANDOM:
             toolbox.register("select", tools.selRandom, k=config['select_size'])
         case Selection.ROULETTE_WHEEL:
             toolbox.register("select", tools.selRoulette, k=config['select_size'])
+        case Selection.STOCH_UNIVERSAL_SAMPLING:
+            toolbox.register("select", tools.selStochasticUniversalSampling, k=config['select_size'])
         case _:
             toolbox.register("select", tools.selBest, k=config['select_size'])
 
@@ -136,7 +140,7 @@ if __name__ == '__main__':
             case Crossover.LINEAR:
                 toolbox.register("mate", linear_crossover)
             case Crossover.SIMULATED_BINARY:
-                toolbox.register("mate", tools.cxSimulatedBinary, eta=1)
+                toolbox.register("mate", tools.cxSimulatedBinary, eta=10)
             case _:
                 print("Bad config")
                 exit(-1)
@@ -165,9 +169,10 @@ if __name__ == '__main__':
         ind.fitness.values = fit
 
     g = 0
+    start_time = time.time()
     while g < config['number_iteration']:
         g = g + 1
-        print("-- Generation %i --" % g)
+        # print("-- Generation %i --" % g)
 
         # Select the next generation individuals
         offspring = toolbox.select(pop)
@@ -183,26 +188,36 @@ if __name__ == '__main__':
 
             # cross two individuals with probability CXPB
             if random.random() < config['probability_mate']:
+                child1_temp, child2_temp = list(map(toolbox.clone, [child1, child2]))
                 toolbox.mate(child1, child2)
 
                 # fitness values of the children
                 # must be recalculated later
-                del child1.fitness.values
-                del child2.fitness.values
+                if is_ind_in_interval(child1) and is_ind_in_interval(child2):
+                    del child1.fitness.values
+                    del child2.fitness.values
+                else:
+                    child1 = child1_temp
+                    child2 = child1_temp
 
+        # offspring_copy = list(map(toolbox.clone, offspring))
         for mutant in offspring:
             # mutate an individual with probability MUTPB
             if random.random() < config['probability_mutate']:
                 toolbox.mutate(mutant)
                 del mutant.fitness.values
 
+        # todo do usunięcia
+        # for i in range(len(offspring)):
+        #     if offspring[i].fitness.values != offspring_copy[i].fitness.values and is_ind_in_interval(offspring_copy[i]):
+        #         offspring[i] = offspring_copy[i]
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitnesses = map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
 
-        print("  Evaluated %i individuals" % len(invalid_ind))
+        # print("  Evaluated %i individuals" % len(invalid_ind))
         pop[:] = offspring + listElitism
         # Gather all the fitnesses in one list and print the stats
         fits = [ind.fitness.values[0] for ind in pop]
@@ -212,16 +227,17 @@ if __name__ == '__main__':
         sum2 = sum(x * x for x in fits)
         std = abs(sum2 / length - mean ** 2) ** 0.5
 
-        print("  Min %s" % min(fits))
-        print("  Max %s" % max(fits))
-        print("  Avg %s" % mean)
-        print("  Std %s" % std)
+        # print("  Min %s" % min(fits))
+        # print("  Max %s" % max(fits))
+        # print("  Avg %s" % mean)
+        # print("  Std %s" % std)
         best_ind = tools.selBest(pop, 1)[0]
 
         best_members.append(decode_individual(best_ind))
         avg_arr.append(mean)
         std_arr.append(std)
-        print("Best individual is %s, %s" % (decode_individual(best_ind), best_ind.fitness.values[0]))
-    print("-- End of (successful) evolution --")
+    execution_time = round(time.time() - start_time, 2)
+    print(f"-- End of evolution, execution time: {execution_time} --")
+    print("Best individual is %s, Value: %s" % (decode_individual(best_ind), best_ind.fitness.values[0]))
     write_to_file(best_members, avg_arr, std_arr)
     create_plots(best_members, avg_arr, std_arr)
